@@ -7,9 +7,14 @@ function SplitFile( fileName )
 
 for idx = 1:numel(segments)
     s = segments(idx)
-    frq = AverageFrequency(s, fs);
+    [frq, A] = Analysis(s, fs);
     
-    outFileName = sprintf('%s/%s-%d-%d.wav',folder,name,idx,frq)
-    audiowrite(outFileName,s{1},fs)
+    outFileName = sprintf('%s/%s-%d-%d',folder,name,idx,frq)
+    audiowrite(strcat(outFileName,'.wav'),s{1},fs)
+    csvwrite(strcat(outFileName,'.csv'), A')
+    plot(A')
+    print(strcat(outFileName,'.png'),'-dpng')
 end
+    
 
+        

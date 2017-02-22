@@ -1,9 +1,4 @@
-function [freq] = AverageFrequency( signal, fs ) 
-    [frq_path, ac_path, t, amp] = praat_pd_mod(signal{1}, fs);
-    frqs = frq_path(frq_path~=0)
-    freq = round(mean(frqs))
-
-function [frq_path, ac_path, t, amp] = praat_pd_mod(in, fs, disp_progress, ...
+function [frq_path, ac_path, t, amp] = Praat(in, fs, disp_progress, ...
     time_step, min_frq, max_frq, VoiceThresh, SilThresh, OctaveCost,...
     VUnvCost, OctJumpCost, Hypotheses)
 
