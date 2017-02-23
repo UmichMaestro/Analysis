@@ -1,12 +1,12 @@
-function CrackIowa( url )
-%CRACKIOWA Summary of this function goes here
-%   Detailed explanation goes here
+function CrackIowa( url, outputPath ) % http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/oboe/oboe.ff.zip
+if nargin < 2 || isempty(outputPath)
+    outputPath = '~/Downloads/';
+end
 
-% http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/oboe/oboe.ff.zip
 [~,n,~] = fileparts(url);
 
 disp('Downloading..........')
-output = websave(sprintf('~/Downloads/%s.zip', n), url);
+output = websave(sprintf('%s%s.zip', outputPath, n), url);
 
 disp('Unzipping............')
 path = output(1:end-4);
@@ -14,7 +14,14 @@ unzip(output,path)
 delete(output)
 
 disp('Analyze!!!!!!!!!!!!!!')
-SplitFilesInFolder(path)
-
+dirResult = dir(path);
+for idx = 1:numel(dirResult)
+    item = dirResult(idx);
+    fileName = item.name;
+    [~,~,e] = fileparts(fileName);
+    if strcmp(e,'.aiff')
+        path = sprintf('%s/%s',item.folder,item.name);
+        Process(path)
+    end
 end
 
