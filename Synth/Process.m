@@ -9,6 +9,10 @@ for idx = 1:numel(segments)
     s = segments(idx);
     [frq, A] = Analysis(s, fs);
     
+    if isnan(frq)
+        continue
+    end
+    
     % synthesize & normalize
     outsig = Synthesis(frq, A, fs);
     outsig = rms(s{1}) / rms(outsig) * outsig;

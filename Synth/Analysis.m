@@ -6,6 +6,12 @@ function [freq, A] = Analysis( signal, fs )
     mnF0 = mean(frq_path(iGood));
     nHarm = round(upSynthFreq/mnF0);    % adjust nHarm to reflect f0 - synthesize up to 8...10kHz?
 
+    if isnan(mnF0)
+        freq = NaN;
+        A = NaN;
+        return
+    end
+    
     freq = mnF0;
     
     if mnF0 > 220
@@ -19,7 +25,6 @@ function [freq, A] = Analysis( signal, fs )
     end
 
     ctrIdx = -frameSz/2+1:frameSz/2;
-    pitchOff = 1;%//;2^(11/12);
     for iSmp = 1:length(time)
         tmp = round(time(iSmp))+ctrIdx;
         iLoc = find(tmp >= 1 & tmp <= time(end));
