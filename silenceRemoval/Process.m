@@ -9,17 +9,23 @@ for idx = 1:numel(segments)
     s = segments(idx);
     [frq, A] = Analysis(s, fs);
     
-    outFileName = sprintf('%s/%s-%d-%d',folder,name,idx,round(frq));
-    audiowrite(strcat(outFileName,'.wav'),s{1},fs)
-    csvwrite(strcat(outFileName,'.csv'), A')
-    plot(A')
-    print(strcat(outFileName,'.png'),'-dpng')
-    
-    % synthesize
+    % synthesize & normalize
     outsig = Synthesis(frq, A, fs);
-    % normalize
     outsig = rms(s{1}) / rms(outsig) * outsig;
-    audiowrite(sprintf('%s-synth.wav', outFileName), outsig, fs)
+    
+    % output
+    outFileName = sprintf('%s/%s-%d-%d',folder,name,idx,round(frq));
+    % 0. data
+    csvwrite(strcat(outFileName,'.csv'), A')
+    % 1. audio
+    audiowrite(sprintf('%s-wav_orig.wav', outFileName),s{1},fs)
+    audiowrite(sprintf('%s-wav_synth.wav', outFileName), outsig, fs)
+    % 2. graphs
+    plot(A')
+    print(sprintf('%s-amp_orig.png', outFileName),'-dpng')
+    Spectrogram(s{1}, fs, strcat(outFileName,'-sp_orig'));
+    Spectrogram(outsig', fs, strcat(outFileName,'-sp_synth'));
+    
 end
     
 

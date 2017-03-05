@@ -6,7 +6,7 @@ function [freq, A] = Analysis( signal, fs )
     mnF0 = mean(frq_path(iGood));
     nHarm = round(upSynthFreq/mnF0);    % adjust nHarm to reflect f0 - synthesize up to 8...10kHz?
 
-    freq = mnF0
+    freq = mnF0;
     
     if mnF0 > 220
         frameSz = 2048;   
