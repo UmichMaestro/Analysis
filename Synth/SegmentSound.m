@@ -38,7 +38,7 @@ end
 fclose(fp);
 
 % Check if .wav extension exists:
-if  (strcmpi(wavFileName(end-3:end),'.wav') || strcmpi(wavFileName(end-4:end),'.aiff'))
+if  (strcmpi(wavFileName(end-3:end),'.wav') || strcmpi(wavFileName(end-4:end),'.aiff') || strcmpi(wavFileName(end-3:end),'.aif'))
     % read the wav file name:
     [x,fs] = audioread(wavFileName);
 else

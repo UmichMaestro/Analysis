@@ -6,12 +6,12 @@ end
 [~,n,~] = fileparts(url);
 
 disp('Downloading..........')
-output = websave(sprintf('%s%s.zip', outputPath, n), url);
+zipfile = websave(sprintf('%s%s.zip', outputPath, n), url);
 
 disp('Unzipping............')
-path = output(1:end-4);
-unzip(output,path)
-delete(output)
+path = zipfile(1:end-4);
+unzip(zipfile,path)
+% delete(zipfile)
 
 disp('Analyze!!!!!!!!!!!!!!')
 dirResult = dir(path);
@@ -19,9 +19,11 @@ for idx = 1:numel(dirResult)
     item = dirResult(idx);
     fileName = item.name;
     [~,~,e] = fileparts(fileName);
-    if strcmp(e,'.aiff')
+    if strcmp(e,'.aiff') || strcmp(e,'.aif')
         path = sprintf('%s/%s',item.folder,item.name);
         Process(path)
     end
 end
+
+
 
