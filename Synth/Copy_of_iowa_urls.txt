@@ -1,4 +1,13 @@
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.vib.ff.zip
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.vib.mf.zip
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.vib.pp.zip
 
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.nonvib.ff.zip
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.nonvib.mf.zip
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/flute/flute.nonvib.pp.zip
+
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/oboe/oboe.ff.zip
+http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/oboe/oboe.mf.zip
 http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/oboe/oboe.zip
 
 http://theremin.music.uiowa.edu/sound%20files/MIS/Woodwinds/altosaxophone/AltoSax.NoVib.ff.zip

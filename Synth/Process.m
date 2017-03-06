@@ -10,6 +10,8 @@ for idx = 1:numel(segments)
     [frq, A] = Analysis(s, fs);
     
     if isnan(frq)
+        outFileName = sprintf('%s/%s-%d',folder,name,idx);
+        audiowrite(sprintf('%s-ERR_orig.wav', outFileName),s{1},fs)
         continue
     end
     
