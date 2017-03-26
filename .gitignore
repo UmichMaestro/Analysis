@@ -1,3 +1,13 @@
 *.aiff
 *.wav
 */CSVs/*
+ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.pbxproj
+ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.xcworkspace/xcuserdata/bangtoven.xcuserdatad/UserInterfaceState.xcuserstate
+ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/xcuserdata/bangtoven.xcuserdatad/xcschemes/ReadBinary.xcscheme
+ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/xcuserdata/bangtoven.xcuserdatad/xcschemes/xcschememanagement.plist
+Synth/ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.pbxproj
+Synth/ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.xcworkspace/contents.xcworkspacedata
+Synth/ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/project.xcworkspace/xcuserdata/bangtoven.xcuserdatad/UserInterfaceState.xcuserstate
+Synth/ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/xcuserdata/bangtoven.xcuserdatad/xcschemes/ReadBinary.xcscheme
+Synth/ConvertToBinary/ReadBinary/ReadBinary.xcodeproj/xcuserdata/bangtoven.xcuserdatad/xcschemes/xcschememanagement.plist
