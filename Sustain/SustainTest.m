@@ -32,7 +32,7 @@ end
 out = out / rms(out);
 out = out / 32;
 player = audioplayer(out, fs);
-play(player)
+playblocking(player)
 
 
 function [out, phase] = Calculate(A, frq, fs, samples, h, phase, out, start, finish, startIndex)
