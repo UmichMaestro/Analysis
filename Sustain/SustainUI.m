@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 28-Mar-2017 17:34:30
+% Last Modified by GUIDE v2.5 03-Apr-2017 20:15:43
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -188,3 +188,17 @@ function finish_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
+
+% --- Executes on button press in playOriginal.
+function playOriginal_Callback(hObject, eventdata, handles)
+% hObject    handle to playOriginal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Synthesis2( frq, A, fs, window )
+fs = 44100;
+sig = Synthesis2(handles.frq, handles.A, fs);
+sig = sig/32;
+player = audioplayer(sig, fs);
+%guidata(hObject, handles)
+playblocking(player);

@@ -8,7 +8,7 @@ function Hd = myFirstFilter
 % Butterworth Highpass filter designed using FDESIGN.HIGHPASS.
 
 % All frequency values are in Hz.
-Fs = 441;  % Sampling Frequency
+Fs = 100;  % Sampling Frequency
 
 Fstop = 0.1;           % Stopband Frequency
 Fpass = 20;           % Passband Frequency
