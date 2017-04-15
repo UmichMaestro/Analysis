@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 03-Apr-2017 20:15:43
+% Last Modified by GUIDE v2.5 06-Apr-2017 20:52:45
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -82,8 +82,9 @@ function play_Callback(hObject, eventdata, handles)
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
 loops = str2double(get(handles.loops,'String'));
+random = get(handles.randomCheckbox, 'Value');
 fs = 44100;
-sig = Sustain(handles.frq, handles.A, fs, start, finish, loops);
+sig = Sustain(handles.frq, handles.A, fs, start, finish, loops, random);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
@@ -202,3 +203,12 @@ sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
 playblocking(player);
+
+
+% --- Executes on button press in randomCheckbox.
+function randomCheckbox_Callback(hObject, eventdata, handles)
+% hObject    handle to randomCheckbox (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hint: get(hObject,'Value') returns toggle state of randomCheckbox
