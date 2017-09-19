@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 06-Apr-2017 20:52:45
+% Last Modified by GUIDE v2.5 19-Sep-2017 19:27:30
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -153,6 +153,7 @@ set(handles.finish, 'String', finish);
 set(handles.loops, 'String', 2);
 plot(handles.axes1, A');
 set(handles.axes1,'XTick',linspace(0,500,51));
+hideMean(handles);
 
 
 
@@ -212,3 +213,49 @@ function randomCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of randomCheckbox
+
+
+% --- Executes on button press in segment.
+function segment_Callback(hObject, eventdata, handles)
+% hObject    handle to segment (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% delete(handles.rect)
+[x,] = ginput(2);
+start = round(x(1));
+finish = round(x(2));
+set(handles.start, 'String', start);
+set(handles.finish, 'String', finish);
+drawMean(start, finish, handles);
+
+function drawMean(start, finish, handles)
+hideMean(handles)
+if start == 0 && finish == 0
+    return;
+end
+for i = 1:size(handles.A, 1)
+    data = handles.A(i,start:finish); % data of i-th harmonics in sustain portion
+    meanValue = mean(data);
+    rectangle('Position', [start meanValue finish-start 0])
+end
+
+function hideMean(handles)
+rect = findobj(handles.axes1,'Type','rectangle');
+if isempty(rect)==false
+   delete(rect) 
+end
+
+
+% --- Executes on button press in show_mean.
+function show_mean_Callback(hObject, eventdata, handles)
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+drawMean(start, finish, handles)
+
+
+% --- Executes on button press in hide_mean.
+function hide_mean_Callback(hObject, eventdata, handles)
+hideMean(handles)
+% hObject    handle to hide_mean (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
