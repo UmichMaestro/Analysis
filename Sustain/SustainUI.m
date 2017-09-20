@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 19-Sep-2017 19:27:30
+% Last Modified by GUIDE v2.5 19-Sep-2017 19:52:49
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -200,6 +200,34 @@ function playOriginal_Callback(hObject, eventdata, handles)
 % Synthesis2( frq, A, fs, window )
 fs = 44100;
 sig = Synthesis2(handles.frq, handles.A, fs);
+sig = sig/32;
+player = audioplayer(sig, fs);
+%guidata(hObject, handles)
+playblocking(player);
+
+
+% --- Executes on button press in play_mean.
+function play_mean_Callback(hObject, eventdata, handles)
+% hObject    handle to play_mean (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+fs = 44100;
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+A = handles.A;
+
+for i = 1:size(A, 1)
+    data = A(i,start:finish); % data of i-th harmonics in sustain portion
+    A(i,start:finish) = mean(data); % set the region to mean value
+end
+
+duration = str2double(get(handles.loops,'String'));
+A = [A(:,1:start) repmat(A(:,start+1), 1, duration*100) A(:,finish:end)];
+
+figure(1)
+plot(A')
+
+sig = Synthesis2(handles.frq, A, fs);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
