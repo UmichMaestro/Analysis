@@ -275,26 +275,38 @@ for i = 1:size(handles.A, 1)
     line(x,y,'Color','red','LineWidth',2.0);
 end
 
-tryDetrend(handles.A(1,:), start, finish);
+tryDetrend(handles.A(3,:), start, finish);
 
 
 
 function tryDetrend(data, start, finish)
+% whole envelope
 figure(2)
 plot(data')
 grid on
 
 sustain = data(start:finish);
-
+% trend line
 c = polyfit([start:finish], sustain, 1);
 x = linspace(start, finish, 2);
 y = c(1)*x + c(2);
 line(x,y,'Color','red');
-
+% residual
 r = detrend(sustain, 'linear');
-line([start:finish], r, 'Color','red');
+line([start:finish], r, 'Color','black');
 
-disp(r);
+figure(3)
+% residual
+plot(r, 'Color','black', 'LineStyle', ':');
+% linear prediction
+[a,g] = lpc(sustain, 10);
+disp(a);
+disp(g);
+noise = randn(1, finish-start+1);
+% noise = noise * sqrt(g)/10;
+est = filter(a, 1, noise);
+line([1:finish-start+1], est, 'Color', 'red', 'LineWidth', 2);
+line([1:finish-start+1], noise, 'Color', 'blue', 'LineWidth', 2);
 
 
 function hideMean(handles)
