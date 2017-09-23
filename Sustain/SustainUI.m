@@ -263,14 +263,44 @@ if start == 0 && finish == 0
 end
 for i = 1:size(handles.A, 1)
     data = handles.A(i,start:finish); % data of i-th harmonics in sustain portion
+    
+    % draw mean
     meanValue = mean(data);
-    rectangle('Position', [start meanValue finish-start 0])
+    rectangle('Position', [start meanValue finish-start 0],'LineWidth',2.0, 'LineStyle',':');
+    
+    % draw line
+    c = polyfit([start:finish], data, 1);
+    x = linspace(start, finish, 2);
+    y = c(1)*x + c(2);
+    line(x,y,'Color','red','LineWidth',2.0);
 end
 
+tryDetrend(handles.A(1,:), start, finish);
+
+
+
+function tryDetrend(data, start, finish)
+figure(2)
+plot(data')
+grid on
+
+sustain = data(start:finish);
+
+c = polyfit([start:finish], sustain, 1);
+x = linspace(start, finish, 2);
+y = c(1)*x + c(2);
+line(x,y,'Color','red');
+
+r = detrend(sustain, 'linear');
+line([start:finish], r, 'Color','red');
+
+disp(r);
+
+
 function hideMean(handles)
-rect = findobj(handles.axes1,'Type','rectangle');
-if isempty(rect)==false
-   delete(rect) 
+overlays = findobj(handles.axes1,'LineWidth',2.0);
+if isempty(overlays)==false
+   delete(overlays) 
 end
 
 
