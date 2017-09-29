@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 19-Sep-2017 19:52:49
+% Last Modified by GUIDE v2.5 28-Sep-2017 19:21:01
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -206,32 +206,65 @@ player = audioplayer(sig, fs);
 playblocking(player);
 
 
-% --- Executes on button press in play_mean.
-function play_mean_Callback(hObject, eventdata, handles)
-% hObject    handle to play_mean (see GCBO)
+% --- Executes on button press in play_with_model.
+function play_with_model_Callback(hObject, eventdata, handles)
+% hObject    handle to play_with_model (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-fs = 44100;
+
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
-A = handles.A;
+loops = str2double(get(handles.loops,'String'));
+random = get(handles.randomCheckbox, 'Value');
+model = handles.model;
+sustain = loops*100;
+fs = 44100;
+A = EnvelopWithModel(handles.A, start, finish, sustain, model, random);
 
-for i = 1:size(A, 1)
-    data = A(i,start:finish); % data of i-th harmonics in sustain portion
-    A(i,start:finish) = mean(data); % set the region to mean value
-end
-
-duration = str2double(get(handles.loops,'String'));
-A = [A(:,1:start) repmat(A(:,start+1), 1, duration*100) A(:,finish:end)];
-
-figure(1)
+figure(7)
 plot(A')
 
+fs = 44100;
 sig = Synthesis2(handles.frq, A, fs);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
 playblocking(player);
+
+
+
+
+
+% sig = sig/32;
+% player = audioplayer(sig, fs);
+% playblocking(player);
+
+
+
+
+
+% function play_mean_Callback(hObject, eventdata, handles)
+% fs = 44100;
+% start = str2double(get(handles.start,'String'));
+% finish = str2double(get(handles.finish,'String'));
+% A = handles.A;
+% 
+% for i = 1:size(A, 1)
+%     data = A(i,start:finish); % data of i-th harmonics in sustain portion
+%     A(i,start:finish) = mean(data); % set the region to mean value
+% end
+% 
+% duration = str2double(get(handles.loops,'String'));
+% A = [A(:,1:start) repmat(A(:,start+1), 1, duration*100) A(:,finish:end)];
+% 
+% figure(1)
+% plot(A')
+% 
+% sig = Synthesis2(handles.frq, A, fs);
+% sig = sig/32;
+% player = audioplayer(sig, fs);
+% %guidata(hObject, handles)
+% playblocking(player);
 
 
 % --- Executes on button press in randomCheckbox.
@@ -261,7 +294,10 @@ hideMean(handles)
 if start == 0 && finish == 0
     return;
 end
-for i = 1:size(handles.A, 1)
+
+residuals = zeros(size(handles.A, 1), finish-start+1);
+
+for i = 1:5
     data = handles.A(i,start:finish); % data of i-th harmonics in sustain portion
     
     % draw mean
@@ -273,19 +309,25 @@ for i = 1:size(handles.A, 1)
     x = linspace(start, finish, 2);
     y = c(1)*x + c(2);
     line(x,y,'Color','red','LineWidth',2.0);
+    
+    residuals(i,:) = detrend(data, 'linear');
 end
 
-tryDetrend(handles.A(3,:), start, finish);
+% 
+% figure(5)
+% plot(residuals')
+% tryDetrend(handles.A(2,:), start, finish);
 
 
 
 function tryDetrend(data, start, finish)
-% whole envelope
+% plot whole envelope
 figure(2)
 plot(data')
 grid on
 
 sustain = data(start:finish);
+duration = finish-start+1;
 % trend line
 c = polyfit([start:finish], sustain, 1);
 x = linspace(start, finish, 2);
@@ -297,16 +339,15 @@ line([start:finish], r, 'Color','black');
 
 figure(3)
 % residual
-plot(r, 'Color','black', 'LineStyle', ':');
+plot(r, 'Color','black', 'LineStyle', ':'); % r is detrended data
 % linear prediction
-[a,g] = lpc(sustain, 10);
-disp(a);
-disp(g);
-noise = randn(1, finish-start+1);
-% noise = noise * sqrt(g)/10;
+[a,g] = lpc(r, 10);
+% disp(a);
+% disp(g);
+noise = sqrt(g) * randn(1, duration);
 est = filter(a, 1, noise);
-line([1:finish-start+1], est, 'Color', 'red', 'LineWidth', 2);
-line([1:finish-start+1], noise, 'Color', 'blue', 'LineWidth', 2);
+line([1:duration], est, 'Color', 'red', 'LineWidth', 2);
+line([1:duration], noise, 'Color', 'blue', 'LineWidth', 2);
 
 
 function hideMean(handles)
@@ -321,6 +362,12 @@ function show_mean_Callback(hObject, eventdata, handles)
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
 drawMean(start, finish, handles)
+
+model = GenerateModel(handles.A, start, finish, 4);
+handles.model = model;
+guidata(hObject, handles)
+
+
 
 
 % --- Executes on button press in hide_mean.
