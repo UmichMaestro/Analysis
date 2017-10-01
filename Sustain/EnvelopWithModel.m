@@ -1,4 +1,4 @@
-function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, random )
+function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, ar )
     harmonics = size(A,1);
     time = size(A, 2);
     duration = (time - (finish-start)) + sustain;
@@ -6,7 +6,7 @@ function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, random )
     
     newA(:,1:start-1) = A(:,1:start-1);
     
-    if (random)
+    if (ar)
         noise = randn(1, duration);
         for i = 1:harmonics 
     %         m = model(i,1);

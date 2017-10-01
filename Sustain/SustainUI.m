@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 28-Sep-2017 19:21:01
+% Last Modified by GUIDE v2.5 01-Oct-2017 15:40:24
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -73,6 +73,48 @@ function varargout = SustainUI_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 
+% --- Executes on button press in load.
+function load_Callback(hObject, eventdata, handles)
+% hObject    handle to load (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[fName, pName] = uigetfile('*.msm');
+handles.path = [pName fName];
+[f,A,start,finish] = OpenBinary(handles.path);
+handles.frq = f;
+handles.A = A;
+guidata(hObject, handles)
+set(handles.start, 'String', start);
+set(handles.finish, 'String', finish);
+set(handles.loops, 'String', 2);
+plot(handles.axes1, A');
+set(handles.axes1,'XTick',linspace(0,500,51));
+hideMean(handles);
+
+% --- Executes on button press in save.
+function save_Callback(hObject, eventdata, handles)
+% hObject    handle to save (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% function WriteSustainPoints( path, start, finish )
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+WriteSustainPoints(handles.path, start, finish);
+
+
+% --- Executes on button press in playOriginal.
+function playOriginal_Callback(hObject, eventdata, handles)
+% hObject    handle to playOriginal (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% Synthesis2( frq, A, fs, window )
+fs = 44100;
+sig = Synthesis2(handles.frq, handles.A, fs);
+sig = sig/32;
+player = audioplayer(sig, fs);
+%guidata(hObject, handles)
+playblocking(player);
+
 % --- Executes on button press in play.
 function play_Callback(hObject, eventdata, handles)
 % hObject    handle to play (see GCBO)
@@ -90,6 +132,138 @@ player = audioplayer(sig, fs);
 %guidata(hObject, handles)
 playblocking(player);
 
+
+
+
+% --- Executes on button press in segment.
+function segment_Callback(hObject, eventdata, handles)
+% hObject    handle to segment (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+% delete(handles.rect)
+[x,] = ginput(2);
+start = round(x(1));
+finish = round(x(2));
+set(handles.start, 'String', start);
+set(handles.finish, 'String', finish);
+drawMean(start, finish, handles);
+
+% --- Executes on button press in show_mean.
+function show_mean_Callback(hObject, eventdata, handles)
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+drawMean(start, finish, handles)
+
+
+% --- Executes on button press in hide_mean.
+function hide_mean_Callback(hObject, eventdata, handles)
+hideMean(handles)
+
+
+function drawMean(start, finish, handles)
+hideMean(handles)
+if start == 0 && finish == 0
+    return;
+end
+
+residuals = zeros(size(handles.A, 1), finish-start+1);
+
+for i = 1:5
+    data = handles.A(i,start:finish); % data of i-th harmonics in sustain portion
+    
+    % draw mean
+    meanValue = mean(data);
+    rectangle('Position', [start meanValue finish-start 0],'LineWidth',2.0, 'LineStyle',':');
+    
+    % draw line
+    c = polyfit([start:finish], data, 1);
+    x = linspace(start, finish, 2);
+    y = c(1)*x + c(2);
+    line(x,y,'Color','red','LineWidth',2.0);
+    
+    residuals(i,:) = detrend(data, 'linear');
+end
+
+function hideMean(handles)
+overlays = findobj(handles.axes1,'LineWidth',2.0);
+if isempty(overlays)==false
+   delete(overlays) 
+end
+
+
+
+% --- Executes on button press in runLPC.
+function runLPC_Callback(hObject, eventdata, handles)
+% hObject    handle to runLPC (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+order = str2double(get(handles.order,'String'));
+model = GenerateModel(handles.A, start, finish, order);
+handles.model = model;
+guidata(hObject, handles);
+
+figure(2)
+data = handles.A(1,:);
+plot(data')
+grid on
+
+sustain = data(start:finish);
+duration = finish-start+1;
+% trend line
+c = polyfit([start:finish], sustain, 1);
+x = linspace(start, finish, 2);
+y = c(1)*x + c(2);
+line(x,y,'Color','red');
+% residual
+r = detrend(sustain, 'linear');
+line(start:finish, r, 'Color','black');
+
+figure(3)
+% linear prediction
+g = sqrt(model(1,2));
+a = [1, model(1,3:end)];
+noise = g * randn(1, duration);
+est = filter(a, 1, noise);
+plot(noise, 'Color', 'black', 'LineStyle', ':', 'LineWidth', 1);
+line(1:duration, r, 'Color','blue', 'LineWidth', 2); % r is detrended data
+line(1:duration, est, 'Color', 'red', 'LineWidth', 2);
+
+
+
+
+% --- Executes on button press in play_with_model.
+function play_with_model_Callback(hObject, eventdata, handles)
+% hObject    handle to play_with_model (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+loops = str2double(get(handles.loops,'String'));
+ar = get(handles.randomCheckbox, 'Value');
+model = handles.model;
+sustain = loops*100;
+fs = 44100;
+A = EnvelopWithModel(handles.A, start, finish, sustain, model, ar);
+
+figure(7)
+plot(A')
+
+fs = 44100;
+sig = Synthesis2(handles.frq, A, fs);
+sig = sig/32;
+player = audioplayer(sig, fs);
+%guidata(hObject, handles)
+playblocking(player);
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%% text fields %%%%%%%%%%%%%%%%%%%
 
 
 function start_Callback(hObject, eventdata, handles)
@@ -137,38 +311,6 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
 end
 
 
-% --- Executes on button press in load.
-function load_Callback(hObject, eventdata, handles)
-% hObject    handle to load (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-[fName, pName] = uigetfile('*.msm');
-handles.path = [pName fName];
-[f,A,start,finish] = OpenBinary(handles.path);
-handles.frq = f;
-handles.A = A;
-guidata(hObject, handles)
-set(handles.start, 'String', start);
-set(handles.finish, 'String', finish);
-set(handles.loops, 'String', 2);
-plot(handles.axes1, A');
-set(handles.axes1,'XTick',linspace(0,500,51));
-hideMean(handles);
-
-
-
-
-% --- Executes on button press in save.
-function save_Callback(hObject, eventdata, handles)
-% hObject    handle to save (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% function WriteSustainPoints( path, start, finish )
-start = str2double(get(handles.start,'String'));
-finish = str2double(get(handles.finish,'String'));
-WriteSustainPoints(handles.path, start, finish);
-
-
 
 function finish_Callback(hObject, eventdata, handles)
 % hObject    handle to finish (see GCBO)
@@ -191,81 +333,26 @@ if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgr
     set(hObject,'BackgroundColor','white');
 end
 
-
-% --- Executes on button press in playOriginal.
-function playOriginal_Callback(hObject, eventdata, handles)
-% hObject    handle to playOriginal (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% Synthesis2( frq, A, fs, window )
-fs = 44100;
-sig = Synthesis2(handles.frq, handles.A, fs);
-sig = sig/32;
-player = audioplayer(sig, fs);
-%guidata(hObject, handles)
-playblocking(player);
-
-
-% --- Executes on button press in play_with_model.
-function play_with_model_Callback(hObject, eventdata, handles)
-% hObject    handle to play_with_model (see GCBO)
+function order_Callback(hObject, eventdata, handles)
+% hObject    handle to order (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
-start = str2double(get(handles.start,'String'));
-finish = str2double(get(handles.finish,'String'));
-loops = str2double(get(handles.loops,'String'));
-random = get(handles.randomCheckbox, 'Value');
-model = handles.model;
-sustain = loops*100;
-fs = 44100;
-A = EnvelopWithModel(handles.A, start, finish, sustain, model, random);
-
-figure(7)
-plot(A')
-
-fs = 44100;
-sig = Synthesis2(handles.frq, A, fs);
-sig = sig/32;
-player = audioplayer(sig, fs);
-%guidata(hObject, handles)
-playblocking(player);
+% Hints: get(hObject,'String') returns contents of order as text
+%        str2double(get(hObject,'String')) returns contents of order as a double
 
 
+% --- Executes during object creation, after setting all properties.
+function order_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to order (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
 
-
-
-% sig = sig/32;
-% player = audioplayer(sig, fs);
-% playblocking(player);
-
-
-
-
-
-% function play_mean_Callback(hObject, eventdata, handles)
-% fs = 44100;
-% start = str2double(get(handles.start,'String'));
-% finish = str2double(get(handles.finish,'String'));
-% A = handles.A;
-% 
-% for i = 1:size(A, 1)
-%     data = A(i,start:finish); % data of i-th harmonics in sustain portion
-%     A(i,start:finish) = mean(data); % set the region to mean value
-% end
-% 
-% duration = str2double(get(handles.loops,'String'));
-% A = [A(:,1:start) repmat(A(:,start+1), 1, duration*100) A(:,finish:end)];
-% 
-% figure(1)
-% plot(A')
-% 
-% sig = Synthesis2(handles.frq, A, fs);
-% sig = sig/32;
-% player = audioplayer(sig, fs);
-% %guidata(hObject, handles)
-% playblocking(player);
-
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
 
 % --- Executes on button press in randomCheckbox.
 function randomCheckbox_Callback(hObject, eventdata, handles)
@@ -274,105 +361,3 @@ function randomCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of randomCheckbox
-
-
-% --- Executes on button press in segment.
-function segment_Callback(hObject, eventdata, handles)
-% hObject    handle to segment (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-% delete(handles.rect)
-[x,] = ginput(2);
-start = round(x(1));
-finish = round(x(2));
-set(handles.start, 'String', start);
-set(handles.finish, 'String', finish);
-drawMean(start, finish, handles);
-
-function drawMean(start, finish, handles)
-hideMean(handles)
-if start == 0 && finish == 0
-    return;
-end
-
-residuals = zeros(size(handles.A, 1), finish-start+1);
-
-for i = 1:5
-    data = handles.A(i,start:finish); % data of i-th harmonics in sustain portion
-    
-    % draw mean
-    meanValue = mean(data);
-    rectangle('Position', [start meanValue finish-start 0],'LineWidth',2.0, 'LineStyle',':');
-    
-    % draw line
-    c = polyfit([start:finish], data, 1);
-    x = linspace(start, finish, 2);
-    y = c(1)*x + c(2);
-    line(x,y,'Color','red','LineWidth',2.0);
-    
-    residuals(i,:) = detrend(data, 'linear');
-end
-
-% 
-% figure(5)
-% plot(residuals')
-% tryDetrend(handles.A(2,:), start, finish);
-
-
-
-function tryDetrend(data, start, finish)
-% plot whole envelope
-figure(2)
-plot(data')
-grid on
-
-sustain = data(start:finish);
-duration = finish-start+1;
-% trend line
-c = polyfit([start:finish], sustain, 1);
-x = linspace(start, finish, 2);
-y = c(1)*x + c(2);
-line(x,y,'Color','red');
-% residual
-r = detrend(sustain, 'linear');
-line([start:finish], r, 'Color','black');
-
-figure(3)
-% residual
-plot(r, 'Color','black', 'LineStyle', ':'); % r is detrended data
-% linear prediction
-[a,g] = lpc(r, 10);
-% disp(a);
-% disp(g);
-noise = sqrt(g) * randn(1, duration);
-est = filter(a, 1, noise);
-line([1:duration], est, 'Color', 'red', 'LineWidth', 2);
-line([1:duration], noise, 'Color', 'blue', 'LineWidth', 2);
-
-
-function hideMean(handles)
-overlays = findobj(handles.axes1,'LineWidth',2.0);
-if isempty(overlays)==false
-   delete(overlays) 
-end
-
-
-% --- Executes on button press in show_mean.
-function show_mean_Callback(hObject, eventdata, handles)
-start = str2double(get(handles.start,'String'));
-finish = str2double(get(handles.finish,'String'));
-drawMean(start, finish, handles)
-
-model = GenerateModel(handles.A, start, finish, 4);
-handles.model = model;
-guidata(hObject, handles)
-
-
-
-
-% --- Executes on button press in hide_mean.
-function hide_mean_Callback(hObject, eventdata, handles)
-hideMean(handles)
-% hObject    handle to hide_mean (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
