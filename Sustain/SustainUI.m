@@ -200,6 +200,16 @@ function runLPC_Callback(hObject, eventdata, handles)
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
 order = str2double(get(handles.order,'String'));
+
+% coefficients experiment
+% coeff = zeros(16, 16);
+% gs = zeros(16, 1);
+% for i=1:16
+%     model = GenerateModel(handles.A, start, finish, i);
+%     gs(i) = model(1, 2);
+%     coeff(i,1:i) = model(1, 3:end);
+% end
+
 model = GenerateModel(handles.A, start, finish, order);
 handles.model = model;
 guidata(hObject, handles);
