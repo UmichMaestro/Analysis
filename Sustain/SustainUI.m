@@ -78,7 +78,7 @@ function load_Callback(hObject, eventdata, handles)
 % hObject    handle to load (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-[fName, pName] = uigetfile('*.msm');
+[fName, pName] = uigetfile('*.msm*');
 handles.path = [pName fName];
 [f,A,start,finish] = OpenBinary(handles.path);
 handles.frq = f;
@@ -99,7 +99,10 @@ function save_Callback(hObject, eventdata, handles)
 % function WriteSustainPoints( path, start, finish )
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
-WriteSustainPoints(handles.path, start, finish);
+
+newPath = [handles.path '1'];
+copyfile(handles.path, newPath); %make copy
+WriteSustainPoints(newPath, start, finish);
 
 
 % --- Executes on button press in playOriginal.
