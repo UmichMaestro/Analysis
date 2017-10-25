@@ -100,7 +100,7 @@ function save_Callback(hObject, eventdata, handles)
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
 
-newPath = [handles.path '1'];
+newPath = [handles.path '2']; % msm2 => segmented
 copyfile(handles.path, newPath); %make copy
 WriteSustainPoints(newPath, start, finish);
 
