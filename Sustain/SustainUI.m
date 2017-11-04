@@ -22,7 +22,7 @@ function varargout = SustainUI(varargin)
 
 % Edit the above text to modify the response to help SustainUI
 
-% Last Modified by GUIDE v2.5 01-Oct-2017 15:40:24
+% Last Modified by GUIDE v2.5 03-Nov-2017 22:05:16
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -86,10 +86,15 @@ handles.A = A;
 guidata(hObject, handles)
 set(handles.start, 'String', start);
 set(handles.finish, 'String', finish);
-set(handles.loops, 'String', 2);
+set(handles.loops, 'String', 3);
 plot(handles.axes1, A');
 set(handles.axes1,'XTick',linspace(0,500,51));
 hideMean(handles);
+if start ~= 0 && finish ~= 0 
+    disp('show lines')
+    show_mean_Callback(hObject, eventdata, handles);
+end
+
 
 % --- Executes on button press in save.
 function save_Callback(hObject, eventdata, handles)
@@ -126,10 +131,10 @@ function play_Callback(hObject, eventdata, handles)
 %function [ out ] = Sustain( frq, A, fs, start, finish, loop )
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
-loops = str2double(get(handles.loops,'String'));
-random = get(handles.randomCheckbox, 'Value');
+duration = str2double(get(handles.loops,'String'));
+random = true; % get(handles.randomCheckbox, 'Value');
 fs = 44100;
-sig = Sustain(handles.frq, handles.A, fs, start, finish, loops, random);
+sig = Sustain(handles.frq, handles.A, fs, start, finish, duration, random);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
@@ -252,12 +257,14 @@ function play_with_model_Callback(hObject, eventdata, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 
+runLPC_Callback(hObject, eventdata, handles)
+
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
-loops = str2double(get(handles.loops,'String'));
+duration = str2double(get(handles.loops,'String'));
 ar = get(handles.randomCheckbox, 'Value');
 model = handles.model;
-sustain = loops*100;
+sustain = duration*100;
 fs = 44100;
 A = EnvelopWithModel(handles.A, start, finish, sustain, model, ar);
 
@@ -374,3 +381,51 @@ function randomCheckbox_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 
 % Hint: get(hObject,'Value') returns toggle state of randomCheckbox
+
+
+% --- Executes on button press in exportButton.
+function exportButton_Callback(hObject, eventdata, handles)
+% hObject    handle to exportButton (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+[folder,name] = fileparts(handles.path);
+outPath = sprintf('%s/%s',folder,name);
+
+fs = 44100;
+start = str2double(get(handles.start,'String'));
+finish = str2double(get(handles.finish,'String'));
+duration = str2double(get(handles.loops,'String'));
+sustain = duration*100;
+
+disp('no sustain. pure msm.');
+sig = Synthesis2(handles.frq, handles.A, fs);
+sig = sig/max(sig);
+audiowrite(sprintf('%s-no_sustain.wav', outPath), sig, fs);
+
+disp('loop sustain');
+sig = Sustain(handles.frq, handles.A, fs, start, finish, duration, false);
+sig = sig/max(sig);
+audiowrite(sprintf('%s-loop.wav', outPath), sig, fs);
+
+disp('mean sustain');
+model = GenerateModel(handles.A, start, finish, 1);
+A = EnvelopWithModel(handles.A, start, finish, sustain, model, false);
+sig = Synthesis2(handles.frq, A, fs);
+sig = sig/max(sig);
+audiowrite(sprintf('%s-mean.wav', outPath), sig, fs);
+
+disp('AR with 1 coeff');
+A = EnvelopWithModel(handles.A, start, finish, sustain, model, true);
+sig = Synthesis2(handles.frq, A, fs);
+sig = sig/max(sig);
+audiowrite(sprintf('%s-AR1.wav', outPath), sig, fs);
+
+for i = [4,8,12,16]
+    disp(sprintf('AR with %d coeff', i));
+    model = GenerateModel(handles.A, start, finish, i);
+    A = EnvelopWithModel(handles.A, start, finish, sustain, model, true);
+    sig = Synthesis2(handles.frq, A, fs);
+    sig = sig/max(sig);
+    audiowrite(sprintf('%s-AR%d.wav', outPath, i), sig, fs);
+end
+disp('DONE');

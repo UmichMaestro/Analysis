@@ -17,7 +17,8 @@ function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, ar )
         end
     else
         for i = 1:harmonics 
-            m = model(i,1);
+            %m = model(i,1);
+            m = mean([A(i,start),A(i,finish)]);
             newA(i, start:start+duration-1) = m;
         end
     end
