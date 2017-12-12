@@ -1,4 +1,4 @@
-function [ output ] = GenerateModel( A, start, finish, order )
+function [ output ] = CreateARModel( A, start, finish, order )
     num = size(A, 1);
     output = zeros(num, order+2);
     for i = 1:num

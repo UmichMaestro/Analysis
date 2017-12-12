@@ -1,4 +1,4 @@
-function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, ar )
+function [ newA ] = ConvertARModelToAmp( A, start, finish, sustain, model, ar )
     harmonics = size(A,1);
     time = size(A, 2);
     duration = (time - (finish-start)) + sustain;
@@ -9,7 +9,7 @@ function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, ar )
     if (ar)
         noise = randn(1, duration);
         for i = 1:harmonics 
-    %         m = model(i,1);
+%             m = model(i,1);
             m = mean([A(i,start),A(i,finish)]);
             g = sqrt(model(i,2));
             a = [1, model(i,3:end)];
@@ -17,7 +17,7 @@ function [ newA ] = EnvelopWithModel( A, start, finish, sustain, model, ar )
         end
     else
         for i = 1:harmonics 
-            %m = model(i,1);
+%             m = model(i,1);
             m = mean([A(i,start),A(i,finish)]);
             newA(i, start:start+duration-1) = m;
         end

@@ -1,4 +1,4 @@
-function [ out ] = Sustain( frq, A, fs, start, finish, playDuration, random )
+function [ out ] = SustainByLoop( frq, A, fs, start, finish, playDuration, random )
     window = 100;
     samples = fs/window;
 

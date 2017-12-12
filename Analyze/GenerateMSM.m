@@ -1,4 +1,4 @@
-function GenerateBinaryTable( path )
+function GenerateMSM( path )
 dirResult = dir(path);
 for idx = 1:numel(dirResult)
     item = dirResult(idx);

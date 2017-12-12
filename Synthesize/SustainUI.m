@@ -80,7 +80,7 @@ function load_Callback(hObject, eventdata, handles)
 % handles    structure with handles and user data (see GUIDATA)
 [fName, pName] = uigetfile('*.msm*');
 handles.path = [pName fName];
-[f,A,start,finish] = OpenBinary(handles.path);
+[f,A,start,finish] = OpenMSM(handles.path);
 handles.frq = f;
 handles.A = A;
 guidata(hObject, handles)
@@ -107,7 +107,13 @@ finish = str2double(get(handles.finish,'String'));
 
 newPath = [handles.path '2']; % msm2 => segmented
 copyfile(handles.path, newPath); %make copy
-WriteSustainPoints(newPath, start, finish);
+% WriteSustainPoints(newPath, start, finish);
+
+fileid = fopen(newPath, 'r+');
+fseek(fileid, 16, 'bof'); % 8: frequency, 4: duration, 4: partials
+fwrite(fileid, start, 'uint32'); % 4
+fwrite(fileid, finish, 'uint32'); % 4
+fclose(fileid);
 
 
 % --- Executes on button press in playOriginal.
@@ -115,9 +121,9 @@ function playOriginal_Callback(hObject, eventdata, handles)
 % hObject    handle to playOriginal (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-% Synthesis2( frq, A, fs, window )
+% Synthesis( frq, A, fs, window )
 fs = 44100;
-sig = Synthesis2(handles.frq, handles.A, fs);
+sig = Synthesis(handles.frq, handles.A, fs);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
@@ -128,13 +134,13 @@ function play_Callback(hObject, eventdata, handles)
 % hObject    handle to play (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-%function [ out ] = Sustain( frq, A, fs, start, finish, loop )
+%function [ out ] = SustainByLoop( frq, A, fs, start, finish, loop )
 start = str2double(get(handles.start,'String'));
 finish = str2double(get(handles.finish,'String'));
 duration = str2double(get(handles.loops,'String'));
 random = true; % get(handles.randomCheckbox, 'Value');
 fs = 44100;
-sig = Sustain(handles.frq, handles.A, fs, start, finish, duration, random);
+sig = SustainByLoop(handles.frq, handles.A, fs, start, finish, duration, random);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
@@ -213,12 +219,12 @@ order = str2double(get(handles.order,'String'));
 % coeff = zeros(16, 16);
 % gs = zeros(16, 1);
 % for i=1:16
-%     model = GenerateModel(handles.A, start, finish, i);
+%     model = CreateARModel(handles.A, start, finish, i);
 %     gs(i) = model(1, 2);
 %     coeff(i,1:i) = model(1, 3:end);
 % end
 
-model = GenerateModel(handles.A, start, finish, order);
+model = CreateARModel(handles.A, start, finish, order);
 handles.model = model;
 guidata(hObject, handles);
 
@@ -266,13 +272,13 @@ ar = get(handles.randomCheckbox, 'Value');
 model = handles.model;
 sustain = duration*100;
 fs = 44100;
-A = EnvelopWithModel(handles.A, start, finish, sustain, model, ar);
+A = ConvertARModelToAmp(handles.A, start, finish, sustain, model, ar);
 
 figure(7)
 plot(A')
 
 fs = 44100;
-sig = Synthesis2(handles.frq, A, fs);
+sig = Synthesis(handles.frq, A, fs);
 sig = sig/32;
 player = audioplayer(sig, fs);
 %guidata(hObject, handles)
@@ -398,33 +404,33 @@ duration = str2double(get(handles.loops,'String'));
 sustain = duration*100;
 
 disp('no sustain. pure msm.');
-sig = Synthesis2(handles.frq, handles.A, fs);
+sig = Synthesis(handles.frq, handles.A, fs);
 sig = sig/max(sig);
 audiowrite(sprintf('%s-no_sustain.wav', outPath), sig, fs);
 
 disp('loop sustain');
-sig = Sustain(handles.frq, handles.A, fs, start, finish, duration, false);
+sig = SustainByLoop(handles.frq, handles.A, fs, start, finish, duration, false);
 sig = sig/max(sig);
 audiowrite(sprintf('%s-loop.wav', outPath), sig, fs);
 
 disp('mean sustain');
-model = GenerateModel(handles.A, start, finish, 1);
-A = EnvelopWithModel(handles.A, start, finish, sustain, model, false);
-sig = Synthesis2(handles.frq, A, fs);
+model = CreateARModel(handles.A, start, finish, 1);
+A = ConvertARModelToAmp(handles.A, start, finish, sustain, model, false);
+sig = Synthesis(handles.frq, A, fs);
 sig = sig/max(sig);
 audiowrite(sprintf('%s-mean.wav', outPath), sig, fs);
 
 disp('AR with 1 coeff');
-A = EnvelopWithModel(handles.A, start, finish, sustain, model, true);
-sig = Synthesis2(handles.frq, A, fs);
+A = ConvertARModelToAmp(handles.A, start, finish, sustain, model, true);
+sig = Synthesis(handles.frq, A, fs);
 sig = sig/max(sig);
 audiowrite(sprintf('%s-AR1.wav', outPath), sig, fs);
 
 for i = [4,8,12,16]
     disp(sprintf('AR with %d coeff', i));
-    model = GenerateModel(handles.A, start, finish, i);
-    A = EnvelopWithModel(handles.A, start, finish, sustain, model, true);
-    sig = Synthesis2(handles.frq, A, fs);
+    model = CreateARModel(handles.A, start, finish, i);
+    A = ConvertARModelToAmp(handles.A, start, finish, sustain, model, true);
+    sig = Synthesis(handles.frq, A, fs);
     sig = sig/max(sig);
     audiowrite(sprintf('%s-AR%d.wav', outPath, i), sig, fs);
 end

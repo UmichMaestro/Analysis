@@ -1,4 +1,4 @@
-function [out] = Synthesis2( frq, A, fs, window )
+function [out] = Synthesis( frq, A, fs, window )
 %Synthesis by Jungho!
 %   Detailed explanation goes here
 

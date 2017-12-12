@@ -1,4 +1,4 @@
-function [freq, A, start, finish] = OpenBinary( filePath )
+function [freq, A, start, finish] = OpenMSM( filePath )
 %OPENBINARY Summary of this function goes here
 %   Detailed explanation goes here
 
@@ -13,11 +13,3 @@ function [freq, A, start, finish] = OpenBinary( filePath )
     fclose(fileid);
     
 end
-
-%pwelch
-%peak
-%location, magnitude of peaks.
-% make it to table
-% classification learner.
-% all quick to train.
-%neural network
