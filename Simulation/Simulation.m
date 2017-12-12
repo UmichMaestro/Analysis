@@ -1,4 +1,4 @@
-function varargout = SustainUI(varargin)
+function varargout = Simulation(varargin)
 % SUSTAINUI MATLAB code for SustainUI.fig
 %      SUSTAINUI, by itself, creates a new SUSTAINUI or raises the existing
 %      singleton*.
